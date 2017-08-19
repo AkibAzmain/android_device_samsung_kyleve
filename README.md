@@ -39,7 +39,7 @@ CPU variant     : 0x3
 CPU part        : 0xc09                                          
 CPU revision    : 0                                              
                                                                  
-Hardware        : hawaii_ss_kylevess                             
+Hardware        : hawaii_ss_kyleve                               
 Revision        : 0000                                           
 Serial          : 0000000000000000                               
 ```
