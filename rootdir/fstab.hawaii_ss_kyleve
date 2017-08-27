@@ -22,4 +22,4 @@
 /dev/block/zram0                                    none                swap    defaults                                                                        zramsize=268435456
 
 # SWAP
-/dev/block/platform/sdhci.1/by-name/HIDDEN          none                swap    defaults                                                                        defaults
+#/dev/block/platform/sdhci.1/by-name/HIDDEN          none                swap    defaults                                                                        defaults
