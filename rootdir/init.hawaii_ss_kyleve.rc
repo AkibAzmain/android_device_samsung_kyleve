@@ -2,39 +2,18 @@ import init.bcm2166x.usb.rc
 import init.log.rc
 
 on early-init
-    write /sys/fs/selinux/enforce 0
     mkdir /efs 0771 radio system
+    mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
     chown system system /sys/devices/platform/pwm-backlight.0/backlight/panel/brightness
 
 on init
-# See storage config details at http://source.android.com/tech/storage/
-    mkdir /mnt/shell/emulated 0700 shell shell
-    mkdir /storage 0550 system sdcard_r
-    mkdir /storage/emulated 0555 root root
+    export LD_SHIM_LIBS "/system/lib/libwvm.so|libshim_wvm.so"
+    mkdir /tmp
+    mount tmpfs tmpfs /tmp
+    chmod 1775 /tmp
 
-# External storage directories
-    mkdir /mnt/media_rw/sdcard0 0700 media_rw media_rw
-    mkdir /mnt/media_rw/sdcard1 0700 media_rw media_rw
+    symlink /sdcard /storage/sdcard0
 
-    mkdir /storage/sdcard0 0700 root root
-    mkdir /storage/sdcard1 0700 root root
-
-    export EXTERNAL_STORAGE /storage/emulated/legacy
-    export SECONDARY_STORAGE /storage/sdcard1
-    export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
-    export EMULATED_STORAGE_TARGET /storage/emulated
-
-# For backwards compatibility
-    symlink /storage/emulated/legacy /sdcard
-    symlink /storage/emulated/legacy /mnt/sdcard
-    symlink /storage/emulated/legacy /storage/sdcard0
-    symlink /mnt/shell/emulated/0 /storage/emulated/legacy
-    symlink /storage/sdcard1 /extSdCard
-    symlink /storage/sdcard1 /mnt/extSdCard
-    symlink /storage/sdcard1 /external_sd
-
-# To store widevine keybox
-    symlink /data/app /factory
     symlink /efs /factory
     symlink /dev/block/mmcblk0p11 /dev/block/param
 
@@ -161,8 +140,6 @@ on boot
 
     setprop ro.build.product hawaii
     setprop ro.product.device hawaii
-
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
 # WIFI
     setprop wifi.interface wlan0
@@ -416,7 +393,7 @@ on boot
     write /proc/sys/vm/page-cluster 0
 
 # Swap tweaks
-    write /proc/sys/vm/swappiness 70
+    write /proc/sys/vm/swappiness 65
     write /proc/sys/vm/dirty_background_ratio 5
     write /proc/sys/vm/dirty_expire_centisecs 200
     write /proc/sys/vm/min_free_order_shift 4
@@ -514,21 +491,6 @@ on post-fs
     chown radio system /efs
     chmod 0771 /efs
 
-# Create virtual SD card at /mnt/sdcard, based on the /data/media directory
-# daemon will drop to user/group system/media_rw after initializing
-# underlying files in /data/media will be created with user and group media_rw (1023)
-service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
-        class late_start
-
-# fusewrapped sdcard daemon running as media_rw (1023)
-    service fuse_sdcard0 /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/sdcard0 /storage/sdcard0
-        class late_start
-        disabled
-
-    service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/sdcard1 /storage/sdcard1
-        class late_start
-        disabled
-
 # Create filesystem if necessary
     service setup_fs /system/bin/setup_fs \
                 /dev/block/mmcblk0p15 \
@@ -565,6 +527,7 @@ service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emul
         class main
         socket wpa_wlan0 dgram 660 wifi wifi
         disabled
+        group system wakelock
         oneshot
 
     service p2p_supplicant /system/bin/wpa_supplicant \
@@ -581,37 +544,7 @@ service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emul
         class main
         socket wpa_wlan0 dgram 660 wifi wifi
         disabled
-        oneshot
-
-    service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL
-        class main
-        disabled
-        oneshot
-
-    service dhcpcd_p2p /system/bin/dhcpcd -aABKL
-        class main
-        disabled
-        oneshot
-
-    service iprenew_wlan0 /system/bin/dhcpcd -n
-        class main
-        disabled
-        oneshot
-
-    service iprenew_p2p /system/bin/dhcpcd -n
-        class main
-        disabled
-        oneshot
-
-# Bluetooth PAN
-    service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
-        class main
-        disabled
-        oneshot
-
-    service iprenew_bt-pan /system/bin/dhcpcd -n
-        class main
-        disabled
+        group system wakelock
         oneshot
 
 # For WiFi MFG(TestMode)
@@ -643,9 +576,10 @@ on property:init.svc.macloader=stopped
 # End of wifi
 
     service gpsd /system/bin/glgps -c /system/etc/gps/glconfig.xml
+        setenv LD_PRELOAD /system/lib/libglgps-compat.so
         class late_start
         user gps
-        group system root inet radio wifi sdcard_rw
+        group system wakelock root inet radio wifi sdcard_rw
 
 # Run bkmgrd automatically on startup
     service bkmgrd /system/bin/bkmgrd
@@ -665,16 +599,26 @@ on property:dev.bootcomplete=1
     chown system system /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
     chown system system /sys/devices/system/cpu/cpufreq/interactive/timer_rate
     chown system system /sys/devices/system/cpu/cpufreq/interactive/boostpulse
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/boost
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/io_is_busy
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/target_loads
     chmod 660 /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq
     chmod 660 /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load
     chmod 660 /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay
     chmod 660 /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
     chmod 660 /sys/devices/system/cpu/cpufreq/interactive/timer_rate
     chmod 660 /sys/devices/system/cpu/cpufreq/interactive/boostpulse
-    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 666666
-    write /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load 70
+    chmod 660 /sys/devices/system/cpu/cpufreq/interactive/boost
+    chmod 660 /sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration
+    chmod 660 /sys/devices/system/cpu/cpufreq/interactive/io_is_busy
+    chmod 660 /sys/devices/system/cpu/cpufreq/interactive/target_loads
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1300000
+    write /sys/devices/system/cpu/cpufreq/interactive/io_is_busy 1
+    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 800000
+    write /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load 50
     write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 6000
-    write /sys/devices/system/cpu/cpufreq/interactive/min_sample_time 15000
+    write /sys/devices/system/cpu/cpufreq/interactive/min_sample_time 20000
     write /sys/devices/system/cpu/cpufreq/interactive/timer_rate 2000
 
 # Change dirty_bytes and dirty_background_bytes for 4GB TLC memory

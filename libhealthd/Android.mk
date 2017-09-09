@@ -1,5 +1,5 @@
-# Copyright (C) 2013 The Android Open Source Project
-# Copyright (C) 2013 The CyanogenMod Project
+# Copyright (C) 2016 The Android Open Source Project
+# Copyright (C) 2016 The LineageOS Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,5 +18,6 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := healthd-hawaii.cpp
 LOCAL_MODULE := libhealthd.hawaii
-LOCAL_C_INCLUDES := system/core/healthd
+LOCAL_MODULE_TAGS := optional
+LOCAL_STATIC_LIBRARIES := libhealthd.default
 include $(BUILD_STATIC_LIBRARY)

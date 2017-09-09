@@ -14,8 +14,7 @@ PRODUCT_COPY_FILES += \
     device/samsung/kyleve/rootdir/init.hawaii_ss_kyleve.rc:root/init.hawaii_ss_kyleve.rc \
     device/samsung/kyleve/rootdir/fstab.hawaii_ss_kyleve:root/fstab.hawaii_ss_kyleve \
     device/samsung/kyleve/rootdir/init.bcm2166x.usb.rc:root/init.bcm2166x.usb.rc \
-    device/samsung/kyleve/rootdir/init.log.rc:root/init.log.rc \
-    device/samsung/kyleve/rootdir/init.rc:root/init.rc
+    device/samsung/kyleve/rootdir/init.log.rc:root/init.log.rc
 
 # Google's Software Decoder.
 PRODUCT_COPY_FILES += \
@@ -41,6 +40,11 @@ PRODUCT_PACKAGES += \
     fsck.f2fs \
     fibmap.f2fs
 
+# GPS/RIL
+PRODUCT_PACKAGES += \
+    libstlport \
+    libglgps-compat
+
 # USB accessory
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
@@ -56,11 +60,32 @@ PRODUCT_PACKAGES += \
     power.hawaii \
     libstagefrighthw
 
+# Media
+PRODUCT_PROPERTY_OVERRIDES += \
+    media.stagefright.legacyencoder=true \
+    media.stagefright.less-secure=true
+
 # IPv6 tethering
 PRODUCT_PACKAGES += \
     ebtables \
     ethertypes
 
+# Snap Camera
+PRODUCT_PACKAGES += \
+    Snap
+
+# Gello Browser
+PRODUCT_PACKAGES += \
+    Gello
+
+# Recorder
+PRODUCT_PACKAGES += \
+    Recorder
+
+# Widevine
+PRODUCT_PACKAGES += \
+    libshim_wvm
+    
 # KSM
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.ksm.default=1
@@ -72,7 +97,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Wi-Fi
 PRODUCT_PACKAGES += \
     macloader \
-    dhcpcd.conf \
     hostapd \
     libnetcmdiface \
     wpa_supplicant \
@@ -106,7 +130,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.telephony.ril_class=SamsungBCMRIL \
     persist.radio.multisim.config=dsds \
     ro.multisim.simslotcount=1 \
-    cm.updater.uri=http://ota.sandpox.org/api \
     ro.telephony.call_ring.multiple=0 \
     camera2.portability.force_api=1 \
     ro.telephony.call_ring=0
@@ -126,17 +149,9 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.checkjni=0 \
     dalvik.vm.checkjni=false
 
-# ART
+# Dex2Oat multi-thread
 PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.dex2oat-flags=--no-watch-dog
-
-# Use Awesomeplayer
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.media.use-awesome=true
-
-# Default USB mode
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp
+    ro.sys.fw.dex2oat_thread_count=2
 
 # Dalvik heap config
 include frameworks/native/build/phone-hdpi-512-dalvik-heap.mk

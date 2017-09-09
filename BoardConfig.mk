@@ -38,6 +38,10 @@ BOARD_KERNEL_TAGS_OFFSET                    := 0x00000100
 #TARGET_KERNEL_SOURCE                        := kernel/samsung/kylevexx
 #TARGET_KERNEL_CUSTOM_TOOLCHAIN              := arm-eabi-4.7
 
+# Kernel toolchain
+KERNEL_TOOLCHAIN                            := $(ANDROID_BUILD_TOP)/prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin
+KERNEL_TOOLCHAIN_PREFIX                     := arm-eabi-
+
 # Kernel Prebuilt
 TARGET_PREBUILT_KERNEL                      := device/samsung/kyleve/kernel/zImage
 PRODUCT_COPY_FILES += \
@@ -45,19 +49,20 @@ PRODUCT_COPY_FILES += \
 	device/samsung/kyleve/kernel/modules/gator.ko:system/lib/modules/gator.ko \
 	device/samsung/kyleve/kernel/modules/dhd.ko:system/lib/modules/dhd.ko \
 
+# Extended filesystem support
+TARGET_KERNEL_HAVE_EXFAT                    := true
+TARGET_KERNEL_HAVE_NTFS                     := true
+
 # Partition size
 BOARD_BOOTIMAGE_PARTITION_SIZE              := 8388608
-BOARD_RECOVERYIMAGE_PARTITION_SIZE          := 16777216 # 8388608 Double size to build otapackage
+# //Fake Values to workaround build
+BOARD_RECOVERYIMAGE_PARTITION_SIZE          := 10279424
+# //
 BOARD_SYSTEMIMAGE_PARTITION_SIZE            := 943718400
 BOARD_SYSTEMIMAGE_JOURNAL_SIZE              := 0
-
-# Dex-preopt
-WITH_DEXPREOPT := true
-
 # Actual size is 2373976064.
 # Reduced by 16384 to fix device encryption.
 #BOARD_USERDATAIMAGE_PARTITION_SIZE          := 2638217216
-
 #BOARD_CACHEIMAGE_PARTITION_SIZE             := 3276800
 #BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE           := ext4
 BOARD_FLASH_BLOCK_SIZE                      := 262144
@@ -66,7 +71,7 @@ BOARD_FLASH_BLOCK_SIZE                      := 262144
 BOARD_HAVE_BLUETOOTH                        := true
 BOARD_HAVE_BLUETOOTH_BCM                    := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/kyleve/bluetooth
-BOARD_BLUEDROID_VENDOR_CONF                 := device/samsung/kyleve/bluetooth/libbt_vndcfg.txt
+BOARD_CUSTOM_BT_CONFIG                      := device/samsung/kyleve/bluetooth/libbt_vndcfg.txt
 
 # Connectivity - Wi-Fi
 BOARD_HAVE_SAMSUNG_WIFI                     := true
@@ -91,29 +96,20 @@ WIFI_BAND                                   := 802_11_ABG
 # LightHAL
 TARGET_PROVIDES_LIBLIGHT                    := true
 
-# PowerHAL
-TARGET_POWERHAL_VARIANT                     := hawaii
-TARGET_USES_CPU_BOOST_HINT                  := true
 
 # Resolution
 TARGET_SCREEN_HEIGHT                        := 800
 TARGET_SCREEN_WIDTH                         := 480
 
 # Hardware rendering
-USE_OPENGL_RENDERER                         := true
-BOARD_USE_MHEAP_SCREENSHOT                  := true
 BOARD_EGL_WORKAROUND_BUG_10194508           := true
 TARGET_USES_ION                             := true
-HWUI_COMPILE_FOR_PERF                       := true
-COMMON_GLOBAL_CFLAGS                        += -DNEEDS_VECTORIMPL_SYMBOLS -DHAWAII_HWC -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
+BOARD_GLOBAL_CFLAGS                         += -DNEEDS_VECTORIMPL_SYMBOLS -DHAWAII_HWC -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
 TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK       := true
 TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS       := true
 
 # External apps on SD
 TARGET_EXTERNAL_APPS                        := sdcard1
-
-# Include an expanded selection of fonts
-EXTENDED_FONT_FOOTPRINT                     := true
 
 # OpenGL
 BOARD_USES_HWCOMPOSER                       := true
@@ -132,9 +128,16 @@ BOARD_HAL_STATIC_LIBRARIES                  := libhealthd.hawaii
 
 # RIL
 BOARD_RIL_CLASS                             := ../../../device/samsung/kyleve/ril/
+BOARD_GLOBAL_CFLAGS                         += -DDISABLE_ASHMEM_TRACKING
 
-# No Recovery
-#TARGET_NO_RECOVERY                          := true
+# Camera
+TARGET_HAS_LEGACY_CAMERA_HAL1               := true
+
+# Some of our vendor libs have text relocations
+TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS      := true
+
+# Bionic (previously known as dlmalloc)
+MALLOC_SVELTE                               := true
 
 # Recovery
 # Compile with BUILD_TWRP=true when build TWRP recovery
@@ -144,8 +147,6 @@ else
     TARGET_RECOVERY_FSTAB                   := device/samsung/kyleve/rootdir/fstab.hawaii_ss_kyleve
 endif
 TARGET_USE_CUSTOM_LUN_FILE_PATH             := /sys/class/android_usb/android0/f_mass_storage/lun/file
-BOARD_HAS_NO_SELECT_BUTTON                  := true
-BOARD_HAS_LARGE_FILESYSTEM                  := true
 TARGET_USERIMAGES_USE_EXT4                  := true
 TARGET_USERIMAGES_USE_F2FS                  := true
 TARGET_RECOVERY_PIXEL_FORMAT                := BGRA_8888
@@ -193,20 +194,3 @@ TARGET_SPECIFIC_HEADER_PATH                 := device/samsung/kyleve/include
 # SELinux
 BOARD_SEPOLICY_DIRS += \
     device/samsung/kyleve/sepolicy
-
-BOARD_SEPOLICY_UNION += \
-    file_contexts \
-    property_contexts \
-    bkmgrd.te \
-    device.te \
-    surfaceflinger.te \
-    bluetooth.te \
-    gpsd.te \
-    healthd.te \
-    init.te \
-    immvibed.te \
-    kernel.te \
-    macloader.te \
-    rild.te \
-    shell.te \
-    system_server.te

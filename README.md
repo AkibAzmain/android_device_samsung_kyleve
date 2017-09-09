@@ -1,7 +1,7 @@
-# CM-12.1 Device tree for Samsung GT-S7392 (kyleve)
+# LineageOS 14.1 Device tree for Samsung GT-S7392 (kyleve)
 
 ### Specs (Physically inspected):
-  - CPU: Cortex-A9 (Little endian)
+  - CPU: Cortex-A9 (Little endian, Single Core)
   - Codename: KYLEVE
   - Display Panel: HX8369 (TFT) + TPS6115 (BACKLIGHT)
   - Display Resolution: 480x800 (240dpi)
@@ -19,7 +19,7 @@
   - WIFI/Bluetooth/FM-Radio: BCM4330
 
 ### Notice:
-  - Apply patch *PATCH_CM-12.1.diff* to root directory of CM-12.1 source code before build
+  - Apply patch *PATCH_CM-14.1.diff* to root directory of LOS-14.1 source code before build
 
 ### Other resource:
   - Kernel source: https://github.com/eduardoclasheiro/android_kernel_samsung_kylevexx
@@ -69,11 +69,11 @@ mmcblk0p19: 0046c000 00000400 "userdata"
 ```
 
 ### Credits (Sort by alphabetical order):
-  - AndroidLover
+  - ghsr
   - Ishant Vivek
   - Pawitp
-  - SandPox
+  - Sandpox
+  - TheComputerGuy96
   - The CyanogenMod Team
   - TheNikiz
-  - Wulsic
   - Zim555

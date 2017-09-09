@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
- * Copyright (C) 2013 The CyanogenMod Project
+ * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2016 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include <healthd.h>
+#include <healthd/healthd.h>
 
 void
 healthd_board_init(struct healthd_config *config)
@@ -34,4 +34,24 @@ healthd_board_battery_update(__attribute__((unused)) struct android::BatteryProp
 {
     // don't log to kernel
     return 1;
+}
+
+void healthd_board_mode_charger_draw_battery(struct android::BatteryProperties*)
+{
+
+}
+
+void healthd_board_mode_charger_battery_update(struct android::BatteryProperties*)
+{
+
+}
+
+void healthd_board_mode_charger_set_backlight(bool)
+{
+
+}
+
+void healthd_board_mode_charger_init()
+{
+
 }
